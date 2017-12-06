@@ -141,7 +141,9 @@ class DbQuery {
 					// Used so you can limit that columns that go
 					// into the model, and used to make the saving
 					// function work.
-					if (newRow.columnsDefaults.hasOwnProperty(property)) {
+					//if (newRow.columnsDefaults.hasOwnProperty(property)) {
+					console.log(newRow.columnsDefaults.has(property) + " for " + property);
+					if (newRow.columnsDefaults.has(property)) {
 						newRow[property] = row[property];
 
 						//if (property == "directory") {
@@ -175,7 +177,7 @@ class Model {
 	static get zeroFrame() { return null; }
 
 	constructor(columnsDefaults) {
-		this.columnsDefaults = columnsDefaults;
+		this.columnsDefaults = new Set(columnsDefaults);
 	}
 
 	static all() {
