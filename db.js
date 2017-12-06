@@ -45,12 +45,17 @@ class DbQuery {
 		return this;
 	}
 
-	where(column, value) { // Make this add AND or OR when multiple ones
+	where(column, conditionOperator, value) { // Make this add AND or OR when multiple ones
 		if (this.query == "") {
 			this.select();
 		}
 
-		this.query += " WHERE " + column + "=";
+		if (value === null || value === undefined) {
+			value = conditionOperator;
+			conditionOperator = "=";
+		}
+
+		this.query += " WHERE " + column + " " + conditionOperator + " ";
 		if (typeof value == 'string') {
 			this.query += "'" + value + "'";
 		} else {
