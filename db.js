@@ -64,12 +64,17 @@ class DbQuery {
 		return this;
 	}
 
-	andWhere(column, value) {
+	andWhere(column, conditionOperator, value) {
 		if (this.query == "") {
 			this.select();
 		}
 
-		this.query += " AND " + column + "=";
+		if (value === null || value === undefined) {
+			value = conditionOperator;
+			conditionOperator = "=";
+		}
+
+		this.query += " AND " + column + " " + conditionOperator + " ";
 		if (typeof value == 'string') {
 			this.query += "'" + value + "'";
 		} else {
