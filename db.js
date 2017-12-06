@@ -83,11 +83,6 @@ class DbQuery {
 		return this;
 	}
 
-	// TOOD: In Laravel, this returns a collection
-	all() {
-		return this.select();
-	}
-
 	limit(i) {
 		if (this.query === "") {
 			this.selectAll();
@@ -266,7 +261,7 @@ class Model {
 
 	static all() {
 		//return this.zeroframe.cmdp('dbQuery', ["SELECT * FROM " + this.tableName]);
-		return new DbQuery(this.tableName, this).all();
+		return new DbQuery(this.tableName, this).selectAll();
 	}
 
 	static select() {
