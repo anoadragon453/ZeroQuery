@@ -141,8 +141,6 @@ class DbQuery {
 					// Used so you can limit that columns that go
 					// into the model, and used to make the saving
 					// function work.
-					//if (newRow.columnsDefaults.hasOwnProperty(property)) {
-					console.log(newRow.columnsDefaults.has(property) + " for " + property);
 					if (newRow.columnsDefaults.has(property)) {
 						newRow[property] = row[property];
 
