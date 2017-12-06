@@ -5,14 +5,18 @@ class DbQuery {
 		this.query = "";
 		this.tableName = tableName;
 		this.modelType = modelType;
+		this.hasField = false;
 		this.isLimited = false;
+		this.hasWhere = false;
+		this.hasOrder = false;
 		//console.log(this.modelType);
 	}
 
+	// NOTE: Breaking Changes
 	select() {
 		this.query = "SELECT ";
 
-		if (arguments.length > 0) {
+		/*if (arguments.length > 0) {
 			for (var i = 0; i < arguments.length; i++) {
 				if (arguments[i] == null) continue;
 				if (i != arguments.length - 1) this.query += arguments[i] + ", ";
@@ -22,7 +26,38 @@ class DbQuery {
 			this.query += "*";
 		}
 
+		return this.from();*/
+		return this;
+	}
+
+	selectAll() {
+		this.query += "SELECT * ";
 		return this.from();
+	}
+
+	all() {
+		this.query += "* ";
+		return this.from();
+	}
+
+	// NOTE: Must manually call from after this.
+	field(column, name) {
+		if (this.query === "") {
+			this.select();
+		}
+
+		if (!this.hasField) {
+			this.query += column;
+		} else {
+			this.query += ", " + column;
+		}
+
+		if (name) {
+			this.query += " AS '" + name + "' ";
+		}
+
+		this.hasField = true;
+		return this;
 	}
 
 	from() {
@@ -36,8 +71,8 @@ class DbQuery {
 	}
 
 	limit(i) {
-		if (this.query == "") {
-			this.select();
+		if (this.query === "") {
+			this.selectAll();
 		}
 
 		this.query += " LIMIT " + i;
@@ -45,9 +80,33 @@ class DbQuery {
 		return this;
 	}
 
+	group(s) {
+		if (this.query === "") {
+			this.selectAll();
+		}
+
+		if (!this.hasGroup) {
+			this.query += " GROUP BY " + s;
+		} else {
+			this.query += ", " + s;
+		}
+		return this;
+	}
+
+	offset(i) {
+		if (this.query === "") {
+			this.selectAll();
+		}
+
+		this.query += " OFFSET " + i;
+		return this;
+	}
+
+	// TODO: Add expr() query builder to allow for expressions like: `WHERE (blah=2 OR blah=3) AND ...`
+
 	where(column, conditionOperator, value) { // Make this add AND or OR when multiple ones
-		if (this.query == "") {
-			this.select();
+		if (this.query === "") {
+			this.selectAll();
 		}
 
 		if (value === null || value === undefined) {
@@ -55,46 +114,47 @@ class DbQuery {
 			conditionOperator = "=";
 		}
 
-		this.query += " WHERE " + column + " " + conditionOperator + " ";
+		if (!this.hasWhere) {
+			this.query += " WHERE " + column + " " + conditionOperator + " ";
+		} else {
+			this.query += " AND " + column + " " + conditionOperator + " ";
+		}
 		if (typeof value == 'string') {
 			this.query += "'" + value + "'";
 		} else {
 			this.query += value;
 		}
+
+		this.hasWhere = true;
 		return this;
 	}
 
+	// @Depricated - where() now automatically adds AND if more than one where
 	andWhere(column, conditionOperator, value) {
-		if (this.query == "") {
-			this.select();
-		}
-
-		if (value === null || value === undefined) {
-			value = conditionOperator;
-			conditionOperator = "=";
-		}
-
-		this.query += " AND " + column + " " + conditionOperator + " ";
-		if (typeof value == 'string') {
-			this.query += "'" + value + "'";
-		} else {
-			this.query += value;
-		}
-		return this;
+		return this.where(column, conditionOperator, value);
 	}
 
-	orderBy(column, direction) {
-		if (this.query == "") {
-			this.select();
+	order(column, direction) {
+		if (this.query === "") {
+			this.selectAll();
 		}
 
-		this.query += " ORDER BY " + column;
+		if (!hasOrder) {
+			this.query += " ORDER BY " + column;
+		} else {
+			this.query += ", " + column;
+		}
 		if (direction == 'desc' || 'DESC') {
 			this.query += " DESC";
 		} else {
 			this.query += " ASC";
 		}
 		return this;
+	}
+
+	// @Depricated - renamed to order()
+	orderBy(column, direction) {
+		return this.order(column, direction);
 	}
 
 	// take(i) { } // TODO: Does this exist?
@@ -104,13 +164,19 @@ class DbQuery {
 
 	// TODO: count(), max(), and sum()
 
+	// join() // Inner Join
+	// outerJoin() // Outer Join
+	// rightJoin() // Right Join
+
+	// leftJoin(tableName, name, onWhere) // name = null for no name
+
 	leftJoinWhere(tableName, column, column2) {
 		// TODO
 	}
 
 	leftJoinUsing(tableName, column) {
-		if (this.query == "") {
-			this.select();
+		if (this.query === "") {
+			this.selectAll();
 		}
 
 		this.query += " LEFT JOIN " + tableName + " USING (" + column + ")";
@@ -159,7 +225,7 @@ class DbQuery {
 
 	// TOOD: In Laravel, this returns a collection
 	get(zeroframe) {
-		if (this.query == "") return Promise.reject("Empty query.");
+		if (this.query === "") return Promise.reject("Empty query.");
 		return zeroframe.cmdp('dbQuery', [this.query])
 			.then(this.mapRowsToModel.bind(this));
 	}
