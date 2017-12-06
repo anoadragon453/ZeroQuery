@@ -157,7 +157,7 @@ class DbQuery {
 			this.selectAll();
 		}
 
-		if (!hasOrder) {
+		if (!this.hasOrder) {
 			this.query += " ORDER BY " + column;
 		} else {
 			this.query += ", " + column;
@@ -167,6 +167,8 @@ class DbQuery {
 		} else {
 			this.query += " ASC";
 		}
+
+		this.hasOrder = true;
 		return this;
 	}
 
