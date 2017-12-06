@@ -60,6 +60,24 @@ class DbQuery {
 		return this;
 	}
 
+	fields() {
+		if (this.query === "") {
+			this.select();
+		}
+
+		if (arguments.length > 0) {
+			for (var i = 0; i < arguments.length; i++) {
+				if (arguments[i] == null) continue;
+				if (i != arguments.length - 1) this.query += arguments[i] + ", ";
+				else this.query += arguments[i] + " ";
+			}
+		} else {
+			this.query += "*";
+		}
+
+		return this.from();
+	}
+
 	from() {
 		this.query += " FROM " + this.tableName;
 		return this;
