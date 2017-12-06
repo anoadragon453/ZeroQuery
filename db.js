@@ -268,7 +268,11 @@ class Model {
 	}
 
 	static select() {
-		return new DbQuery(this.tableName, this).select(...arguments);
+		return new DbQuery(this.tableName, this).select();
+	}
+
+	static fields() {
+		return new DbQuery(this.tableName, this).fields(...arguments);
 	}
 
 	// Inserts new model into database, or updates existing model.
