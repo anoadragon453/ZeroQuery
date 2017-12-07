@@ -376,7 +376,7 @@ class Model {
 	}
 
 	publish(content_file) {
-		return this.cmdp("sitePublish", { "inner_path": content_file, "sign": false })
+		return this.zeroFrame.cmdp("sitePublish", { "inner_path": content_file, "sign": false })
 			.then((res) => {
 				return res === "ok";
 			});
