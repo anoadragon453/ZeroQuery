@@ -329,9 +329,11 @@ class Model {
 
 				var jsonObj = {};
 
-				for (property in self) {
-					if (self.hasOwnProperty(property)) {
-						jsonObj[property] = self.property;
+				for (property in self.columnsDefaults) {
+					if (self.columnsDefaults.hasOwnProperty(property)) {
+						if (self.has(property)) {
+							jsonObj[property] = self.property;
+						}
 					}
 				}
 
