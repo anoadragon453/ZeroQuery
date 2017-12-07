@@ -1,8 +1,15 @@
 // TODO: call this library zeroquery?
 
+var QueryType = Object.freeze({
+	NONE: 0,
+	SELECT: 1,
+	EXPRESSION: 2
+});
+
 class DbQuery {
 	constructor(tableName, modelType) {
 		this.query = "";
+		this.type = QueryType.NONE;
 		this.tableName = tableName;
 		this.modelType = modelType;
 		this.hasField = false;
@@ -14,6 +21,7 @@ class DbQuery {
 
 	// NOTE: Breaking Changes
 	select() {
+		this.type = QueryType.SELECT;
 		this.query = "SELECT ";
 
 		/*if (arguments.length > 0) {
@@ -35,13 +43,45 @@ class DbQuery {
 		return this.from();
 	}
 
+	expr(column = null, conditionOperator = null, value = null) { // TODO: Accept expressions
+		this.type = QueryType.EXPRESSION;
+
+		if (column && conditionOperator) {
+			if (value === null || value === undefined) {
+				value = conditionOperator;
+				conditionOperator = "=";
+			}
+
+			
+			this.query += column + " " + conditionOperator + " ";
+			
+			if (typeof value == 'string') {
+				this.query += "'" + value + "'";
+			} else {
+				this.query += value;
+			}
+		}
+
+		return this;
+	}
+
+	and() {
+		this.query += " AND ";
+		return this;
+	}
+
+	or() {
+		this.query += " OR ";
+		return this;
+	}
+
 	all() {
 		this.query += "* ";
 		return this.from();
 	}
 
 	// NOTE: Must manually call from after this.
-	field(column, name) {
+	field(column, name = null) {
 		if (this.query === "") {
 			this.select();
 		}
@@ -115,9 +155,7 @@ class DbQuery {
 		return this;
 	}
 
-	// TODO: Add expr() query builder to allow for expressions like: `WHERE (blah=2 OR blah=3) AND ...`
-
-	where(column, conditionOperator, value) { // Make this add AND or OR when multiple ones
+	where(column, conditionOperator, value = null) { // TODO: Accept expressions
 		if (this.query === "") {
 			this.selectAll();
 		}
@@ -143,7 +181,7 @@ class DbQuery {
 	}
 
 	// @Depricated - where() now automatically adds AND if more than one where
-	andWhere(column, conditionOperator, value) {
+	andWhere(column, conditionOperator, value = null) {
 		return this.where(column, conditionOperator, value);
 	}
 
@@ -178,6 +216,9 @@ class DbQuery {
 	// Also allow find([1, 2, 3])
 
 	// TODO: count(), max(), and sum()
+
+
+	// TODO: Accept expressions in join functions
 
 	// join() // Inner Join
 	// outerJoin() // Outer Join
@@ -273,8 +314,70 @@ class Model {
 	}
 
 	// Inserts new model into database, or updates existing model.
-	save() {
+	save(date_file) {
 		// TODO
+		var self = this;
+		return zeroFrame.cmdp("fileGet", { "inner_path": date_file, "required": false })
+			.then((data) => { // Get Data
+				if (!data) {
+					console.log("No Data!"); // TODO
+					return null;
+				}
+				return JSON.parse(data);
+			}).then((data) => { // Modify Data
+				if (!data[self.tableName]) data[self.tableName] = [];
+
+				var jsonObj = {};
+
+				for (property in self) {
+					if (self.hasOwnProperty(property)) {
+						jsonObj[property] = self.property;
+					}
+				}
+
+				console.log("Json Obj: " + jsonObj);
+
+				data[self.tableName].push(jsonObj);
+				return data;
+			}).then((data) => { // Write data
+				var json_raw = unescape(encodeURIComponent(JSON.stringify(data, undefined, "\t")));
+
+				return zeroFrame.cmdp("fileWrite", [data_file, btoa(json_raw)]);
+			}).then((res) => {
+				if (res !== "ok") {
+					zeroFrame.cmdp("wrapperNotification", ["error", "Failed to write to data file."]);
+				}
+
+				return res === "ok";
+			});
+	}
+
+	sign(content_file, publish = false) {
+		var self = this;
+
+		return zeroFrame.cmdp("siteSign", { "inner_path": content_file })
+			.then((res) => {
+				if (res !== "ok") {
+					zeroFrame.cmdp("wrapperNotification", ["error", "Failed to sign content file."]);
+					return false;
+				}
+
+				if (publish) {
+					return zeroFrame.cmdp("sitePublish", { "inner_path": content_file, "sign": false })
+						.then((res) => {
+							return res === "ok";
+						});
+				}
+
+				return res === "ok";
+			});
+	}
+
+	publish(content_file) {
+		return page.cmdp("sitePublish", { "inner_path": content_file, "sign": false })
+			.then((res) => {
+				return res === "ok";
+			});
 	}
 
 	delete() {
