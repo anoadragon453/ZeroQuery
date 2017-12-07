@@ -317,7 +317,7 @@ class Model {
 	save(date_file) {
 		// TODO
 		var self = this;
-		return zeroFrame.cmdp("fileGet", { "inner_path": date_file, "required": false })
+		return self.zeroFrame.cmdp("fileGet", { "inner_path": date_file, "required": false })
 			.then((data) => { // Get Data
 				if (!data) {
 					console.log("No Data!"); // TODO
@@ -344,10 +344,10 @@ class Model {
 			}).then((data) => { // Write data
 				var json_raw = unescape(encodeURIComponent(JSON.stringify(data, undefined, "\t")));
 
-				return zeroFrame.cmdp("fileWrite", [data_file, btoa(json_raw)]);
+				return self.zeroFrame.cmdp("fileWrite", [data_file, btoa(json_raw)]);
 			}).then((res) => {
 				if (res !== "ok") {
-					zeroFrame.cmdp("wrapperNotification", ["error", "Failed to write to data file."]);
+					self.zeroFrame.cmdp("wrapperNotification", ["error", "Failed to write to data file."]);
 				}
 
 				return res === "ok";
@@ -357,15 +357,15 @@ class Model {
 	sign(content_file, publish = false) {
 		var self = this;
 
-		return zeroFrame.cmdp("siteSign", { "inner_path": content_file })
+		return self.zeroFrame.cmdp("siteSign", { "inner_path": content_file })
 			.then((res) => {
 				if (res !== "ok") {
-					zeroFrame.cmdp("wrapperNotification", ["error", "Failed to sign content file."]);
+					self.zeroFrame.cmdp("wrapperNotification", ["error", "Failed to sign content file."]);
 					return false;
 				}
 
 				if (publish) {
-					return zeroFrame.cmdp("sitePublish", { "inner_path": content_file, "sign": false })
+					return self.zeroFrame.cmdp("sitePublish", { "inner_path": content_file, "sign": false })
 						.then((res) => {
 							return res === "ok";
 						});
