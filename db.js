@@ -314,10 +314,10 @@ class Model {
 	}
 
 	// Inserts new model into database, or updates existing model.
-	save(zeroFrame, date_file) {
+	save(zeroFrame, data_file) {
 		// TODO
 		var self = this;
-		return zeroFrame.cmdp("fileGet", { "inner_path": date_file, "required": false })
+		return zeroFrame.cmdp("fileGet", { "inner_path": data_file, "required": false })
 			.then((data) => { // Get Data
 				if (!data) {
 					console.log("No Data!"); // TODO
