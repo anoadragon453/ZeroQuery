@@ -314,10 +314,10 @@ class Model {
 	}
 
 	// Inserts new model into database, or updates existing model.
-	save(date_file) {
+	save(zeroFrame, date_file) {
 		// TODO
 		var self = this;
-		return self.zeroFrame.cmdp("fileGet", { "inner_path": date_file, "required": false })
+		return zeroFrame.cmdp("fileGet", { "inner_path": date_file, "required": false })
 			.then((data) => { // Get Data
 				if (!data) {
 					console.log("No Data!"); // TODO
@@ -344,28 +344,28 @@ class Model {
 			}).then((data) => { // Write data
 				var json_raw = unescape(encodeURIComponent(JSON.stringify(data, undefined, "\t")));
 
-				return self.zeroFrame.cmdp("fileWrite", [data_file, btoa(json_raw)]);
+				return zeroFrame.cmdp("fileWrite", [data_file, btoa(json_raw)]);
 			}).then((res) => {
 				if (res !== "ok") {
-					self.zeroFrame.cmdp("wrapperNotification", ["error", "Failed to write to data file."]);
+					zeroFrame.cmdp("wrapperNotification", ["error", "Failed to write to data file."]);
 				}
 
 				return res === "ok";
 			});
 	}
 
-	sign(content_file, publish = false) {
+	sign(zeroFrame, content_file, publish = false) {
 		var self = this;
 
-		return self.zeroFrame.cmdp("siteSign", { "inner_path": content_file })
+		return zeroFrame.cmdp("siteSign", { "inner_path": content_file })
 			.then((res) => {
 				if (res !== "ok") {
-					self.zeroFrame.cmdp("wrapperNotification", ["error", "Failed to sign content file."]);
+					zeroFrame.cmdp("wrapperNotification", ["error", "Failed to sign content file."]);
 					return false;
 				}
 
 				if (publish) {
-					return self.zeroFrame.cmdp("sitePublish", { "inner_path": content_file, "sign": false })
+					return zeroFrame.cmdp("sitePublish", { "inner_path": content_file, "sign": false })
 						.then((res) => {
 							return res === "ok";
 						});
@@ -375,8 +375,8 @@ class Model {
 			});
 	}
 
-	publish(content_file) {
-		return this.zeroFrame.cmdp("sitePublish", { "inner_path": content_file, "sign": false })
+	publish(zeroFrame, content_file) {
+		return zeroFrame.cmdp("sitePublish", { "inner_path": content_file, "sign": false })
 			.then((res) => {
 				return res === "ok";
 			});
