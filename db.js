@@ -314,7 +314,7 @@ class Model {
 	}
 
 	// Inserts new model into database, or updates existing model.
-	save(zeroFrame, data_file) {
+	save(zeroFrame, data_file, f = null) {
 		// TODO
 		var self = this;
 		return zeroFrame.cmdp("fileGet", { "inner_path": data_file, "required": false })
@@ -340,6 +340,9 @@ class Model {
 				console.log("Json Obj: " + jsonObj);
 
 				data[self.tableName].push(jsonObj);
+
+				if (f !== null && typeof f == "function") f(data);
+
 				return data;
 			}).then((data) => { // Write data
 				var json_raw = unescape(encodeURIComponent(JSON.stringify(data, undefined, "\t")));
